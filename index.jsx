@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 
 // ─── Firebase Config (user fills in their own credentials) ─────────────────
-const FIREBASE_CONFIG_PLACEHOLDER = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
+const firebaseConfig = {
+  apiKey: "AIzaSyBEhYfzA6vMlD8ADMXqLWOTRseYQK20XLY",
+  authDomain: "tictac-68539.firebaseapp.com",
+  projectId: "tictac-68539",
+  storageBucket: "tictac-68539.firebasestorage.app",
+  messagingSenderId: "699493030629",
+  appId: "1:699493030629:web:056c2940da8ab860e3120c"
 };
 
 // ─── Mock DB (replaces Firebase in demo) ──────────────────────────────────
