@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 // ─── Firebase Config (user fills in their own credentials) ─────────────────
-const FIREBASE_CONFIG_PLACEHOLDER = {
+const firebaseConfig = {
   apiKey: "AIzaSyBEhYfzA6vMlD8ADMXqLWOTRseYQK20XLY",
   authDomain: "tictac-68539.firebaseapp.com",
   projectId: "tictac-68539",
