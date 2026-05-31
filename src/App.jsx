@@ -1,14 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 
 // ─── Firebase Config (user fills in their own credentials) ─────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyBEhYfzA6vMlD8ADMXqLWOTRseYQK20XLY",
-  authDomain: "tictac-68539.firebaseapp.com",
-  projectId: "tictac-68539",
-  storageBucket: "tictac-68539.firebasestorage.app",
-  messagingSenderId: "699493030629",
-  appId: "1:699493030629:web:056c2940da8ab860e3120c"
-};
+import { db, auth } from "./firebase";
+import { doc, setDoc, getDoc, updateDoc, collection, addDoc, onSnapshot } from "firebase/firestore";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 
 // ─── Mock DB (replaces Firebase in demo) ──────────────────────────────────
 const mockDB = {
@@ -71,22 +66,38 @@ export default function TicTacWin() {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const updateUser = (uid, updates) => {
-    setUsers(prev => ({ ...prev, [uid]: { ...prev[uid], ...updates } }));
-    if (currentUser?.uid === uid) setCurrentUser(prev => ({ ...prev, ...updates }));
-  };
+  const updateUser = async (uid, updates) => {
+  await updateDoc(doc(db, "users", uid), updates);
+  setCurrentUser(prev => ({ ...prev, ...updates }));
+};
+  const addTransaction = async (tx) => {
+  const newTx = { ts: Date.now(), status: "completed", ...tx };
+  await addDoc(collection(db, "transactions"), newTx);
+  return newTx;
+};
 
-  const addTransaction = (tx) => {
-    const newTx = { id: `t${Date.now()}`, ts: Date.now(), status: "completed", ...tx };
-    setTransactions(prev => [newTx, ...prev]);
-    return newTx;
-  };
+  // REGISTER new user
+const register = async (email, password, name) => {
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  await setDoc(doc(db, "users", cred.user.uid), {
+    uid: cred.user.uid,
+    name,
+    email,
+    balance: 0,
+    totalWon: 0,
+    totalLost: 0,
+    gamesPlayed: 0,
+    role: "user"
+  });
+};
 
-  const login = (uid) => {
-    const user = users[uid];
-    setCurrentUser(user);
-    setScreen(user.role === "admin" ? "admin" : "home");
-  };
+// LOGIN existing user
+const login = async (email, password) => {
+  const cred = await signInWithEmailAndPassword(auth, email, password);
+  const snap = await getDoc(doc(db, "users", cred.user.uid));
+  setCurrentUser(snap.data());
+  setScreen("home");
+};
 
   const logout = () => { setCurrentUser(null); setScreen("login"); };
 
@@ -163,7 +174,13 @@ function LoginScreen({ users, login }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [err, setErr] = useState("");
-
+useEffect(() => {
+  if (!user?.uid) return;
+  const unsub = onSnapshot(doc(db, "users", user.uid), (snap) => {
+    if (snap.exists()) setCurrentUser(snap.data());
+  });
+  return () => unsub();
+}, [user?.uid]);
   const accounts = [
     { label: "👤 User: Ali", uid: "user-1", hint: "Balance: ₨5,000" },
     { label: "👤 User: Sara", uid: "user-2", hint: "Balance: ₨8,750" },
